@@ -15,10 +15,18 @@ Our v23.2 major update marks the first official release of the DevExpress Multi-
 
 This example application is a modern multi-tenant iteration of our original WinForms-based Outlook-inspired demo solution. It serves as the central data management hub for the DevAv Company, overseeing various business entities such as Employees, Products, Orders, Quotes, Customers, and Stores.
 
+For more information on multi-tenancy in XAF, refer to the [Multitenancy](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy) section of our online documentation.
+
 ![](./Images/ManageTenants.png)
 
 ## Table of Contents
-- [Architecture](#architecture)
+
+- [Run the Application](#run-the-application) 
+- [Implementation Details](#implementation-details) 
+  - [Enable Multi-Tenancy](#enable-multi-tenancy)
+  - [Configure ObjectSpaceProviders for tenants](#configure-objectspaceproviders-for-tenants)
+  - [Fill the Databases with Initial Data](#fill-the-databases-with-initial-data)
+- [Solution Overview](#solution-overview)
   - [Domain Diagram](#domain-diagram)
   - [Entity Framework Core](#entity-framework-core)
 - [OutlookInspired.Win Project](#outlookinspiredwin-project)
@@ -42,52 +50,50 @@ This example application is a modern multi-tenant iteration of our original WinF
     - [Maps Subfolder](#maps-subfolder-1)
     - [Orders Subfolder](#orders-subfolder)
     - [Product Subfolder](#product-subfolder)
-- [Importing](#importing)
-- [Continuous Integration and Continuous Deployment (CI/CD)](#continuous-integration-and-continuous-deployment-cicd)
-  - [Test Projects Structure](#test-projects-structure)
-  - [Testing Methodology](#testing-methodology)
 
-
-
-# Run the Application
+## Run the Application
 
 When you launch the WinForms or Blazor application for the first time, you need to log in with the "Admin" account and a blank password. The application will run in Host User Interface mode used to view, create and edit Tenants. 
 
-After you log in, two tenants are created in the system: company1.com and company2.com. You can view the tenant list in the Host User Interface's corresponding List View. 
+![Host UI](./Images/HostUI.png)
+
+After you log in, two tenants are created in the system: *company1.com* and *company2.com*. You can view the tenant list in the Host User Interface's corresponding List View. 
 
 After the Host Database is initialized, you can log in to Tenant User Interface using of the following Tenant Administrator accounts 
 
-- admin@company1.com 
-- admin@company2.com 
+- *admin@company1.com* 
+- *admin@company2.com* 
 
-A Tenant Administrator has full access to all data stored in the Tenant Database but no access to other Tenants' data. Users and permissions are managed in each tenant independently. 
+A Tenant Administrator has full access to all data stored in the Tenant Database but no access to other Tenants' data. Users and permissions are managed in each tenant independently.
 
-Additionally, the example application creates a list of users with restricted access rights in each tenant, for example klarkm@company1.com, clarkm@company2.com and others.  
+![Tenant UI](./Images/TenantUI.png)
 
-# Implementation Details 
+Additionally, the example application creates a list of users with restricted access rights in each tenant, for example *klarkm@company1.com*, *clarkm@company2.com* and others.  
 
-## Enable Multi-Tenancy 
+## Implementation Details 
+
+### Enable Multi-Tenancy 
 
 In the Blazor application, the following code enables multi-tenancy: 
 
-- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12) 
+- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12) 
 
-In the WinForms application, the following code enables multi-tenancy: 
+In the WinForms application, the following code enables multi-tenancy:
 
-- [OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Win/Services/ApplicationBuilder.cs#L92) 
+- [OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L92) 
 
-## Configure ObjectSpaceProviders for tenants: 
+### Configure ObjectSpaceProviders for tenants
 
 In the Blazor application: 
 
-- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L66)
+- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L66)
 
-В the WinForms application: 
+In the WinForms application:
 
-[OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12)
+[OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12)
 
  
-## Fill the Databases with Initial Data 
+### Fill the Databases with Initial Data 
 
 A multi-tenant application works with several independent databases: 
 
@@ -98,17 +104,15 @@ A Tenant's database is created and populated with demo data on the first login t
 
 The list of the tenants is created, and tenant databases are populated with demo data in the Module Updater: 
 
-- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13)
+- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13)
 
 To be able to determine the tenant whose database is being updated when the Module Updater runs, the `Updater` class includes the `TenantId` and `TenantName` properties that return the current tenant's unique identifier and name respectively. 
 
-- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L179](https://github.com/apobekiaris/OutlookInspired/blob/2f6440eb4586d2b840f262af55951a9249369d7c/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L179)
+- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L179](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2+/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L70)
 
 When the Host Database is updated, the tenant is not specified, and the properties described above return `null`. 
 
-# Solution Overview
-
-## Architecture
+## Solution Overview
 
 ### Domain Diagram
 
@@ -609,20 +613,7 @@ This folder contains functionality specific to the solution.
   ![](Images/ProductCardView.png)
 
 
-=========
-
-The Multi-Tenancy Module was first introduced in June 2023 as a Community Technology Preview (CTP). This module helps developers create multi-tenant or SaaS-ready XAF Blazor and WinForms applications (.NET 6+) that target a single host database and one database per tenant. To incorporate this capability, you simply need to write a few declarative lines of code instead of writing hundreds of lines of code.
-
-
-
 Please take a moment to [complete a short survey](https://www.devexpress.com/products/net/application_framework/survey.xml) about your multi-tenancy requirements﻿.
 
 [Documentation](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy-support?v=23.2) | [Getting Started](https://docs.devexpress.com/eXpressAppFramework/404669/multitenancy/create-new-multitenant-application?v=23.2) | [Best Practices and Limitations](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy?v=23.2#best-practices-and-limitations)  | [Modules in a Multi-Tenant Application](https://docs.devexpress.com/eXpressAppFramework/404695/multitenancy/modules-in-multitenant-application?v=23.2)
 
-![](./Images/ManageTenants.png)
-
-## Files to Review
-
-- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](./CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs)
-- [OutlookInspired.Win/Services/ApplicationBuilder.cs](./CS/OutlookInspired.Win/Services/ApplicationBuilder.cs)
-- [OutlookInspired.Module/DatabaseUpdate/Updater.cs](./CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs)
