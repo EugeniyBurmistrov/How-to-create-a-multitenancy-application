@@ -68,7 +68,7 @@ A Tenant Administrator has full access to all data stored in the Tenant Database
 
 ![Tenant UI](./Images/TenantUI.png)
 
-Additionally, the example application creates a list of users with restricted access rights in each tenant, for example `klarkm@company1.com`, `clarkm@company2.com` and others.  
+Additionally, the example application creates a list of users with restricted access rights in each tenant, for example `clarkm@company1.com`, `clarkm@company2.com` and others.  
 
 ## Implementation Details 
 
