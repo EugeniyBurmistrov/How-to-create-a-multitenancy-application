@@ -57,18 +57,18 @@ When you launch the WinForms or Blazor application for the first time, you need 
 
 ![Host UI](./Images/HostUI.png)
 
-After you log in, two tenants are created in the system: *company1.com* and *company2.com*. You can view the tenant list in the Host User Interface's corresponding List View. 
+After you log in, two tenants are created in the system: `company1.com` and `company2.com`. You can view the tenant list in the Host User Interface's corresponding List View. 
 
 After the Host Database is initialized, you can log in to Tenant User Interface using of the following Tenant Administrator accounts 
 
-- *admin@company1.com* 
-- *admin@company2.com* 
+- `admin@company1.com`
+- `admin@company2.com`
 
 A Tenant Administrator has full access to all data stored in the Tenant Database but no access to other Tenants' data. Users and permissions are managed in each tenant independently.
 
 ![Tenant UI](./Images/TenantUI.png)
 
-Additionally, the example application creates a list of users with restricted access rights in each tenant, for example *klarkm@company1.com*, *clarkm@company2.com* and others.  
+Additionally, the example application creates a list of users with restricted access rights in each tenant, for example `klarkm@company1.com`, `clarkm@company2.com` and others.  
 
 ## Implementation Details 
 
