@@ -15,9 +15,9 @@ Our v23.2 major update marks the first official release of the DevExpress Multi-
 
 This example application is a modern multi-tenant iteration of our original WinForms-based Outlook-inspired demo solution. It serves as the central data management hub for the DevAv Company, overseeing various business entities such as Employees, Products, Orders, Quotes, Customers, and Stores.
 
-For more information on multi-tenancy in XAF, refer to the [Multitenancy](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy) section of our online documentation.
-
 ![](./Images/ManageTenants.png)
+
+For more information on multi-tenancy in XAF, refer to the [Multitenancy](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy) section of our online documentation.
 
 ## Table of Contents
 
