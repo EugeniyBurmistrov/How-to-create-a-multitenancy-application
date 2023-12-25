@@ -74,25 +74,73 @@ Additionally, the example application creates a list of users with restricted ac
 
 ### Enable Multi-Tenancy 
 
-In the Blazor application, the following code enables multi-tenancy: 
+In the Blazor application, the following code enables multi-tenancy.
 
-- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12) 
+[OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12):
 
-In the WinForms application, the following code enables multi-tenancy:
+```cs
+public static IBlazorApplicationBuilder AddMultiTenancy(this IBlazorApplicationBuilder builder, IConfiguration configuration){
+    builder.AddMultiTenancy()
+        .WithHostDbContext((_, options) => {
+#if EASYTEST
+            string connectionString = configuration.GetConnectionString("EasyTestConnectionString");
+#else
+            string connectionString = configuration.GetConnectionString("ConnectionString");
+#endif
+            options.UseSqlServer(connectionString);
+            options.UseChangeTrackingProxies();
+            options.UseLazyLoadingProxies();
+        })
+        .WithTenantResolver<TenantByEmailResolver>();
+    return builder;
+}
+```
 
-- [OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L92) 
+In the WinForms application, the following code enables multi-tenancy.
 
-### Configure ObjectSpaceProviders for tenants
+[OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L79):
+
+```cs
+public static IWinApplicationBuilder AddMultiTenancy(this IWinApplicationBuilder builder, string serviceConnectionString) {
+    builder.AddMultiTenancy()
+        .WithHostDbContext((_, options) => {
+            options.UseSqlServer(serviceConnectionString);
+            options.UseChangeTrackingProxies();
+            options.UseLazyLoadingProxies();
+        })
+        .WithTenantResolver<TenantByEmailResolver>();
+    return builder;
+}
+```
+
+### Configure ObjectSpaceProviders for Tenants
 
 In the Blazor application: 
 
-- [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L66)
+[OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L59):
 
-In the WinForms application:
+```cs
+// ...
+builder.WithDbContext<Module.BusinessObjects.OutlookInspiredEFCoreDbContext>((serviceProvider, options) => {
+    // ...
+    options.UseSqlServer(serviceProvider.GetRequiredService<IConnectionStringProvider>().GetConnectionString());
+})
+// ...
+```
 
-[OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L80C12-L80C12)
+In the WinForms application.
 
- 
+[OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L69):
+
+```cs
+// ...
+builder.WithDbContext<OutlookInspiredEFCoreDbContext>((application, options) => {
+  // ...
+  options.UseSqlServer(application.ServiceProvider.GetRequiredService<IConnectionStringProvider>().GetConnectionString());
+}, ServiceLifetime.Transient)
+// ...
+```
+
 ### Fill the Databases with Initial Data 
 
 A multi-tenant application works with several independent databases: 
@@ -104,19 +152,37 @@ A Tenant's database is created and populated with demo data on the first login t
 
 The list of the tenants is created, and tenant databases are populated with demo data in the Module Updater: 
 
-- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L13)
+[OutlookInspired.Module/DatabaseUpdate/Updater.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L36):
 
-To be able to determine the tenant whose database is being updated when the Module Updater runs, the `Updater` class includes the `TenantId` and `TenantName` properties that return the current tenant's unique identifier and name respectively. 
+```cs
+public override void UpdateDatabaseAfterUpdateSchema() {
+  base.UpdateDatabaseAfterUpdateSchema();
+  if (ObjectSpace.TenantName() == null) {
+    CreateAdminObjects();
+    CreateTenant("company1.com", "OutlookInspired_company1");
+    CreateTenant("company2.com", "OutlookInspired_company2");
+    ObjectSpace.CommitChanges();
+  }
+  // ...
+}
 
-- [OutlookInspired.Module/DatabaseUpdate/Updater.cs#L179](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2+/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L70)
+private void CreateTenant(string tenantName, string databaseName) {
+    var tenant = ObjectSpace.FirstOrDefault<Tenant>(t => t.Name == tenantName);
+    if (tenant == null) {
+        tenant = ObjectSpace.CreateObject<Tenant>();
+        tenant.Name = tenantName;
+        tenant.ConnectionString = $"Integrated Security=SSPI;MultipleActiveResultSets=True;Data Source=(localdb)\\mssqllocaldb;Initial Catalog={databaseName}";
+    }
+}
+```
 
-When the Host Database is updated, the tenant is not specified, and the properties described above return `null`. 
+To be able to determine the tenant whose database is being updated when the Module Updater runs, the `Updater` class includes the `TenantId` and `TenantName` properties that return the current tenant's unique identifier and name respectively. When the Host Database is updated, the tenant is not specified, and these properties2 return `null`. 
 
 ## Solution Overview
 
 ### Domain Diagram
 
-The diagram below depicts the application's architecture:
+The diagram below depicts the application's domain architecture:
 
 ![](Images/DomainModel.png)
 
@@ -134,14 +200,14 @@ The solution consists of three distinct projects.
 
 ##### `Services` Folder
 
-This folder serves as the centralized storage for the application's business logic so that all other classes' implementation can be compact. For instance, methods that utilize `XafApplication` are located in _Services/XafApplicationExtensions_.
+This folder serves as the centralized storage for the application's business logic so that all other classes' implementation can be compact. For instance, methods that utilize `XafApplication` are located in [Services/Internal/XafApplicationExtensions](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Services/Internal/XafApplicationExtensions.cs):
 
 ```cs
 public static IObjectSpace NewObjectSpace(this XafApplication application) 
     => application.CreateObjectSpace(typeof(OutlookInspiredBaseObject));
 ```
 
-Methods that use `IObjectSpace` can be found in _Services/ObjectSpaceExtensions_. For example:
+Methods that use `IObjectSpace` can be found in [Services/Internal/ObjectSpaceExtensions](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Services/Internal/ObjectSpaceExtensions.cs). For example:
 
 ```cs
 public static TUser CurrentUser<TUser>(this IObjectSpace objectSpace) where TUser:ISecurityUser 
@@ -154,6 +220,8 @@ The `SecurityExtensions` class, configures a diverse set of permissions for each
 3. Navigation permissions for `Employees`, `Evaluations`, and `Customers`
 4. Mail merge permissions for orders and customers
 5. Permissions for various reports including `Revenue`, `Contacts`, `TopSalesMan`, and `Locations`.
+
+[Services/Internal/ObjectSpaceExtensions](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Services/Internal/SecurityExtensions.cs):
 
 ```cs
 private static void AddManagementPermissions(this PermissionPolicyRole role) 
@@ -169,11 +237,12 @@ private static void AddManagementPermissions(this PermissionPolicyRole role)
 
 ##### `Attributes` Folder
 
-The `Attributes` folder contains attribute declarations.
+The [Attributes](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/tree/23.2.3%2B/CS/OutlookInspired.Module/Attributes) folder contains attribute declarations.
 
 - `FontSizeDeltaAttribute`
   This attribute is applied to properties of `Customer`, `Employee`, `Evaluation`, `EmployeeTask`, `Order`, and `Product` types to configure the font size. The implementation is context-dependent; in the WinForms application, this attribute it is used by the `LabelPropertyEditor`...
 
+  [OutlookInspired.Win/Editors/LabelControlPropertyEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Editors/LabelControlPropertyEditor.cs):
 
   ```cs
    protected override object CreateControlCore() 
@@ -190,6 +259,8 @@ The `Attributes` folder contains attribute declarations.
 
   ... and the `GridView`.
 
+  [OutlookInspired.Win/Services/Internal/Extensions.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Services/Internal/Extensions.cs):
+
   ```cs
    public static void IncreaseFontSize(this GridView gridView, ITypeInfo typeInfo){
       var columns = typeInfo.AttributedMembers<FontSizeDeltaAttribute>().ToDictionary(
@@ -203,8 +274,10 @@ The `Attributes` folder contains attribute declarations.
 
   ![](Images/WinFontDelta.png)
 
-  In the Blazor application, the logic that depends on the `FontSizeDeltaAttribute` is implemented in the following extension method:
+  In the Blazor application, the logic that depends on the `FontSizeDeltaAttribute` is implemented in the following extension method.
   
+  [OutlookInspired.Blazor.Server/Services/Internal/Extensions.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/Extensions.cs#L83):
+
   ```cs
     public static string FontSize(this IMemberInfo info){
         var fontSizeDeltaAttribute = info.FindAttribute<FontSizeDeltaAttribute>();
@@ -222,8 +295,10 @@ The `Attributes` folder contains attribute declarations.
 
   `DeactivateActionAttribute`: This is an extension of the [Conditional Appearance module](https://docs.devexpress.com/eXpressAppFramework/113286/conditional-appearance) used to deactivate actions.
 
+  [Attributes/Appearance/DeactivateActionAttribute.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Attributes/Appearance/DeactivateActionAttribute.cs):
+
   ```cs
-  public class DeactivateActionAttribute : AppearanceAttribute {
+  puOutlookInspired.Blazor.Server/Services/Internal/Extensions.csbute {
       public DeactivateActionAttribute(params string[] actions) : 
           base($"Deactivate {string.Join(" ", actions)}", DevExpress.  ExpressApp.ConditionalAppearance.AppearanceItemType.Action, "1=1")   {
           Visibility = ViewItemVisibility.Hide;
@@ -237,6 +312,8 @@ The `Attributes` folder contains attribute declarations.
 
 - ##### `Validation` Subfolder 
   In this folder, you can find attributes that extend the [XAF Validation module](https://docs.devexpress.com/eXpressAppFramework/113684/validation-module). Available are `EmailAddressAttribute`, `PhoneAttribute`, `UrlAttribute`, `ZipCodeAttribute`. The code sample illustrates how the `ZipCodeAttribute` is implemented. Other attributes are implemented similarly.
+
+  [Attributes/FontSizeDeltaAttribute.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Attributes/FontSizeDeltaAttribute.cs):
 
   ```cs
   public class ZipCodeAttribute : RuleRegularExpressionAttribute {
@@ -257,8 +334,10 @@ This folder contains implementations for features specific to the solution.
 
 - ##### `CloneView` Subfolder
 
-  This subfolder contains the `CloneViewAttribute` declaration, which is used to generate views in addition to the default ones. For example:
-  
+  This subfolder contains the [CloneViewAttribute](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Features/CloneView/CloneViewAttribute.cs) declaration, which is used to generate views in addition to the default ones. For example:
+
+  [BusinessObjects/Employee.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/BusinessObjects/Employee.cs#L22):
+
   ```cs
   [CloneView(CloneViewType.DetailView, LayoutViewDetailView)]
   [CloneView(CloneViewType.DetailView, ChildDetailView)]
@@ -269,6 +348,7 @@ This folder contains implementations for features specific to the solution.
       public const string MapsDetailView = "Employee_DetailView_Maps";
       public const string ChildDetailView = "Employee_DetailView_Child";
       public const string LayoutViewDetailView =   "EmployeeLayoutView_DetailView";
+      // ...
   }
 - ##### `Customers` Subfolder
   This subfolder contains controllers related to customers, such as:
@@ -509,8 +589,10 @@ This folder contais the following controllers with no dependencies:
 ### `Editors` Folder
 This folder houses XAF custom editors. Examples include:
 
-- **ChartListEditor** - An abstract list editor designed to aid in creating simple object-specific variants.
+- `ChartListEditor` - An abstract list editor designed to aid in creating simple object-specific variants.
   
+  [Editors/ChartListEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Editors/ChartListEditor.cs):
+
   ```csharp
   [ListEditor(typeof(MapItem), true)]
   public class MapItemChartListEditor : ChartListEditor<MapItem, string, decimal, string, XafChart<MapItem, string, decimal, string>> {
@@ -519,6 +601,8 @@ This folder houses XAF custom editors. Examples include:
   }
 
 - `ComponentPropertyEditor` - An abstract property editor that can serve as a base for editors such as `ProgressPropertyEditor` or `PdfViewEditor`. The latter makes use of the PdfViewer component from the _Components_ folder.
+
+  [Editors/ComponentPropertyEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Editors/ComponentPropertyEditor.cs):
 
   ```cs
   [PropertyEditor(typeof(byte[]), EditorAliases.PdfViewerEditor)]
@@ -539,7 +623,9 @@ This folder contains functionality specific to the solution.
 - ##### `Customers` subfolder
   Uses components from the `Components` (bound to data) to render data related to customers. For example it uses the `StackedCardView` with a `StackedInfoCard` as shown below:
 
-  ```cs
+  [Features/Customers/Stores/StoresCardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Customers/Stores/StoresCardView.razor):
+
+  ```razor
   <StackedCardView>
     <Content>
         @foreach (var store in ComponentModel.Stores){
@@ -556,9 +642,11 @@ This folder contains functionality specific to the solution.
   
 - ##### `Employees` subfolder
   
-  Uses components from the `Components` (bound to data) to render data related to employees.
+  Uses data-bound components from the `Components` folder to render data related to employees.
 
-  ```cs
+  [Features/Employees/CardView/CardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Employees/CardView/CardView.razor):
+
+  ```razor
   <StackedCardView >
     <Content>
         @foreach (var employee in ComponentModel.Objects){
@@ -594,7 +682,9 @@ This folder contains functionality specific to the solution.
 - ##### `Product` subfolder
   Similar to the Employees subfolder, the `Component/CardViews/StackedCardView` declaration is as follows:
 
-  ```xml
+  [Features/Products/CardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Products/CardView.razor):
+
+  ```razor
   <StackedCardView>
     <Content>
         @foreach (var product in ComponentModel.Objects) {
