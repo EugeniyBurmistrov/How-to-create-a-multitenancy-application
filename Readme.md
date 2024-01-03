@@ -70,6 +70,10 @@ A Tenant Administrator has full access to all data stored in the Tenant Database
 
 Additionally, the example application creates a list of users with restricted access rights in each tenant, for example `clarkm@company1.com`, `clarkm@company2.com` and others.  
 
+Please take a moment to [complete a short survey](https://www.devexpress.com/products/net/application_framework/survey.xml) about your multi-tenancy requirements﻿.
+
+[Documentation](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy-support?v=23.2) | [Getting Started](https://docs.devexpress.com/eXpressAppFramework/404669/multitenancy/create-new-multitenant-application?v=23.2) | [Best Practices and Limitations](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy?v=23.2#best-practices-and-limitations)  | [Modules in a Multi-Tenant Application](https://docs.devexpress.com/eXpressAppFramework/404695/multitenancy/modules-in-multitenant-application?v=23.2)
+
 ## Implementation Details 
 
 ### Enable Multi-Tenancy 
@@ -702,8 +706,4 @@ This folder contains functionality specific to the solution.
 
   ![](Images/ProductCardView.png)
 
-
-Please take a moment to [complete a short survey](https://www.devexpress.com/products/net/application_framework/survey.xml) about your multi-tenancy requirements﻿.
-
-[Documentation](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy-support?v=23.2) | [Getting Started](https://docs.devexpress.com/eXpressAppFramework/404669/multitenancy/create-new-multitenant-application?v=23.2) | [Best Practices and Limitations](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy?v=23.2#best-practices-and-limitations)  | [Modules in a Multi-Tenant Application](https://docs.devexpress.com/eXpressAppFramework/404695/multitenancy/modules-in-multitenant-application?v=23.2)
 
