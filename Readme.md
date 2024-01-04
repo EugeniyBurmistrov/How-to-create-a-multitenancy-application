@@ -6,18 +6,20 @@
 
 # XAF - How to Create a Multi-Tenant Application
 
-Our v23.2 major update marks the first official release of the DevExpress Multi-Tenancy Module. The first release supports straightforward CRUD usage scenarios and includes the following features:
+XAF v23.2 marks the first official release of the DevExpress Multi-Tenancy Module. This release supports straightforward CRUD usage scenarios and includes the following built-in features:
 
- - XPO ORM support (v23.1 supported only EF Core).
- - Authentication: Log in with an email / OAuth2 account (like Microsoft Entra ID or Google), and a password (the domain automatically resolves the tenant and its storage).
+ - XPO ORM support (v23.1 only supported EF Core).
+ - Authentication: Log in with an email/OAuth2 account (like Microsoft Entra ID or Google) and a password (the domain automatically resolves the tenant and its storage).
  - Tenant Isolation: Multi-tenant app with multiple databases (a database per tenant).
  - Database Creation: The application automatically creates a tenant database and schema at runtime (if the database does not exist).
 
-This example application is a modern multi-tenant iteration of our original WinForms-based Outlook-inspired demo solution. It serves as the central data management hub for the DevAv Company, overseeing various business entities such as Employees, Products, Orders, Quotes, Customers, and Stores.
+This example application is a modern multi-tenant iteration of our original WinForms-based demo. It serves as the central data management hub for the fictitious company, overseeing various business entities such as Employees, Products, Orders, Quotes, Customers, and Stores.
 
 ![](./Images/ManageTenants.png)
 
-For more information on multi-tenancy in XAF, refer to the [Multitenancy](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy) section of our online documentation.
+For additional information, refer to the [Multitenancy](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy) section of our online documentation.
+
+> Before you review this XAF sample project, please take a moment to [complete a short multi-tenancy related survey](https://www.devexpress.com/products/net/application_framework/survey.xml) (share your multi-tenancy requirements with us).
 
 ## Table of Contents
 
@@ -25,7 +27,7 @@ For more information on multi-tenancy in XAF, refer to the [Multitenancy](https:
 - [Implementation Details](#implementation-details) 
   - [Enable Multi-Tenancy](#enable-multi-tenancy)
   - [Configure ObjectSpaceProviders for tenants](#configure-objectspaceproviders-for-tenants)
-  - [Fill the Databases with Initial Data](#fill-the-databases-with-initial-data)
+  - [Populate Databases with Data](#populate-databases-with-data)
 - [Solution Overview](#solution-overview)
   - [Domain Diagram](#domain-diagram)
   - [Entity Framework Core](#entity-framework-core)
@@ -53,24 +55,22 @@ For more information on multi-tenancy in XAF, refer to the [Multitenancy](https:
 
 ## Run the Application
 
-When you launch the WinForms or Blazor application for the first time, you need to log in with the "Admin" account and a blank password. The application will run in Host User Interface mode used to view, create and edit Tenants. 
+When you launch the WinForms or Blazor application for the first time, you can login using the "Admin" account and a blank password. The application will execute in Host User Interface mode (used to view, create and edit Tenants).
 
 ![Host UI](./Images/HostUI.png)
 
-After you log in, two tenants are created in the system: `company1.com` and `company2.com`. You can view the tenant list in the Host User Interface's corresponding List View. 
+Once you log in, two tenants are created in the system: `company1.com` and `company2.com`. You can view the tenant list in the Host User Interface List View. 
 
-After the Host Database is initialized, you can log in to Tenant User Interface using of the following Tenant Administrator accounts 
+After the Host Database is initialized, you can log in to the Tenant User Interface using one of the following Tenant Administrator accounts
 
 - `admin@company1.com`
 - `admin@company2.com`
 
-A Tenant Administrator has full access to all data stored in the Tenant Database but no access to other Tenants' data. Users and permissions are managed in each tenant independently.
+A Tenant Administrator has full access to all data stored in the Tenant Database but no access to other Tenant data. Users and permissions are managed in each tenant independently.
 
 ![Tenant UI](./Images/TenantUI.png)
 
-Additionally, the example application creates a list of users with restricted access rights in each tenant, for example `clarkm@company1.com`, `clarkm@company2.com` and others.  
-
-Please take a moment to [complete a short survey](https://www.devexpress.com/products/net/application_framework/survey.xml) about your multi-tenancy requirements﻿.
+In addition, the sample application creates a list of users with restricted access rights in each tenant (for example `clarkm@company1.com`, `clarkm@company2.com` and others).  
 
 [Documentation](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy-support?v=23.2) | [Getting Started](https://docs.devexpress.com/eXpressAppFramework/404669/multitenancy/create-new-multitenant-application?v=23.2) | [Best Practices and Limitations](https://docs.devexpress.com/eXpressAppFramework/404436/multitenancy?v=23.2#best-practices-and-limitations)  | [Modules in a Multi-Tenant Application](https://docs.devexpress.com/eXpressAppFramework/404695/multitenancy/modules-in-multitenant-application?v=23.2)
 
@@ -78,7 +78,7 @@ Please take a moment to [complete a short survey](https://www.devexpress.com/pro
 
 ### Enable Multi-Tenancy 
 
-In the Blazor application, the following code enables multi-tenancy.
+In the Blazor application, the following code activates multi-tenancy.
 
 [OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/ApplicationBuilder.cs#L46C12-L46C12):
 
@@ -100,7 +100,7 @@ public static IBlazorApplicationBuilder AddMultiTenancy(this IBlazorApplicationB
 }
 ```
 
-In the WinForms application, the following code enables multi-tenancy.
+In the WinForms application, the following code activates multi-tenancy.
 
 [OutlookInspired.Win/Services/ApplicationBuilder.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Services/ApplicationBuilder.cs#L79):
 
@@ -145,16 +145,16 @@ builder.WithDbContext<OutlookInspiredEFCoreDbContext>((application, options) => 
 // ...
 ```
 
-### Fill the Databases with Initial Data 
+### Populate Databases with Data
 
-A multi-tenant application works with several independent databases: 
+A multi-tenant application works with several independent databases:
 
-- Host database – stores the list of Super Administrators and the list of tenants. 
-- One or several tenant databases – store user data independently from other organizations (tenants).
+- Host database – stores a list of Super Administrators and the list of tenants.
+- One or multiple tenant databases – store user data independently from other organizations (tenants).
 
-A Tenant's database is created and populated with demo data on the first login to this tenant. 
+A Tenant database is created and populated with demo data on the first login to the tenant itself.
 
-The list of the tenants is created, and tenant databases are populated with demo data in the Module Updater: 
+A list of the tenants is created, and tenant databases are populated with demo data in the Module Updater:
 
 [OutlookInspired.Module/DatabaseUpdate/Updater.cs](https://github.com/EugeniyBurmistrov/How-to-create-a-multitenancy-application/blob/23.2.2%2B/CS/OutlookInspired.Module/DatabaseUpdate/Updater.cs#L36):
 
@@ -180,13 +180,13 @@ private void CreateTenant(string tenantName, string databaseName) {
 }
 ```
 
-To be able to determine the tenant whose database is being updated when the Module Updater runs, the `Updater` class includes the `TenantId` and `TenantName` properties that return the current tenant's unique identifier and name respectively. When the Host Database is updated, the tenant is not specified, and these properties2 return `null`. 
+To determine the tenant whose database is being updated when the Module Updater executes, the `Updater` class includes the `TenantId` and `TenantName` properties that return the current tenant's unique identifier and name respectively. When the Host Database is updated, the tenant is not specified, and these properties return `null`. 
 
 ## Solution Overview
 
 ### Domain Diagram
 
-The diagram below depicts the application's domain architecture:
+The following diagram describes the application's domain architecture:
 
 ![](Images/DomainModel.png)
 
@@ -196,7 +196,7 @@ The solution consists of three distinct projects.
 
 ![Project Structure Diagram](Images/Solution.png)
 <a name="OutlookInspiredModule"></a>
-- **OutlookInspired.Module** - A platform-agnostic module on which all other projects rely.
+- **OutlookInspired.Module** - A platform-agnostic module required by all other projects.
 - **OutlookInspired.Blazor.Server** - A Blazor port of the original _OutlookInspired_ demo.
 - **OutlookInspired.Win** - A WinForms port of the original _OutlookInspired_ demo.
 
@@ -204,7 +204,7 @@ The solution consists of three distinct projects.
 
 ##### `Services` Folder
 
-This folder serves as the centralized storage for the application's business logic so that all other classes' implementation can be compact. For instance, methods that utilize `XafApplication` are located in [Services/Internal/XafApplicationExtensions](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Services/Internal/XafApplicationExtensions.cs):
+This folder serves as the centralized storage for app business logic so that all other class implementations can be compact. For instance, methods that utilize `XafApplication` are located in [Services/Internal/XafApplicationExtensions](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Services/Internal/XafApplicationExtensions.cs):
 
 ```cs
 public static IObjectSpace NewObjectSpace(this XafApplication application) 
@@ -217,7 +217,7 @@ Methods that use `IObjectSpace` can be found in [Services/Internal/ObjectSpaceEx
 public static TUser CurrentUser<TUser>(this IObjectSpace objectSpace) where TUser:ISecurityUser 
     => objectSpace.GetObjectByKey<TUser>(objectSpace.ServiceProvider.GetRequiredService<ISecurityStrategyBase>().UserId);
 ```
-The `SecurityExtensions` class, configures a diverse set of permissions for each department. For instance, the Management department will have:
+The `SecurityExtensions` class configures a diverse set of permissions for each department. For instance, the Management department will have:
 
 1. CRUD permissions for `EmployeeTypes`
 2. Read-only permissions for `CustomerTypes`
@@ -244,7 +244,7 @@ private static void AddManagementPermissions(this PermissionPolicyRole role)
 The [Attributes](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/tree/23.2.3%2B/CS/OutlookInspired.Module/Attributes) folder contains attribute declarations.
 
 - `FontSizeDeltaAttribute`
-  This attribute is applied to properties of `Customer`, `Employee`, `Evaluation`, `EmployeeTask`, `Order`, and `Product` types to configure the font size. The implementation is context-dependent; in the WinForms application, this attribute it is used by the `LabelPropertyEditor`...
+  This attribute is applied to properties of `Customer`, `Employee`, `Evaluation`, `EmployeeTask`, `Order`, and `Product` types to configure font size. he implementation is context-dependent; in the WinForms application, this attribute it is used by the `LabelPropertyEditor`...
 
   [OutlookInspired.Win/Editors/LabelControlPropertyEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Win/Editors/LabelControlPropertyEditor.cs):
 
@@ -278,7 +278,7 @@ The [Attributes](https://github.com/DevExpress-Examples/xaf-create-multitenant-a
 
   ![](Images/WinFontDelta.png)
 
-  In the Blazor application, the logic that depends on the `FontSizeDeltaAttribute` is implemented in the following extension method.
+  In the Blazor application, `FontSizeDeltaAttribute` dependent logic is implemented in the following extension method.
   
   [OutlookInspired.Blazor.Server/Services/Internal/Extensions.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Services/Internal/Extensions.cs#L83):
 
@@ -289,13 +289,13 @@ The [Attributes](https://github.com/DevExpress-Examples/xaf-create-multitenant-a
     }
   ```
 
-  The attribute is used similarly to the WinForms application:
+  The attribute is used like its WinForms application counterpart:
   
   ![](Images/BlazorFontDelta.png)
 
 - ##### `Appearance` Subfolder
 
-  The following [Conditional Appearance module](https://docs.devexpress.com/eXpressAppFramework/113286/conditional-appearance) attributes are located here:
+  The following [Conditional Appearance module](https://docs.devexpress.com/eXpressAppFramework/113286/conditional-appearance) attributes are in this subfolder:
 
   `DeactivateActionAttribute`: This is an extension of the [Conditional Appearance module](https://docs.devexpress.com/eXpressAppFramework/113286/conditional-appearance) used to deactivate actions.
 
@@ -312,10 +312,10 @@ The [Attributes](https://github.com/DevExpress-Examples/xaf-create-multitenant-a
   
   ```
 
-  Similarly, we derive from this attribute to create the other attributes found in the same folder (`ForbidCRUDAttribute`, `ForbidDeleteAttribute`,`ForbidDeleteAttribute`).
+  In much the same way, we derive from this attribute to create other attributes found in the same folder (`ForbidCRUDAttribute`, `ForbidDeleteAttribute`,`ForbidDeleteAttribute`).
 
 - ##### `Validation` Subfolder 
-  In this folder, you can find attributes that extend the [XAF Validation module](https://docs.devexpress.com/eXpressAppFramework/113684/validation-module). Available are `EmailAddressAttribute`, `PhoneAttribute`, `UrlAttribute`, `ZipCodeAttribute`. The code sample illustrates how the `ZipCodeAttribute` is implemented. Other attributes are implemented similarly.
+  This folder includes attributes that extend the [XAF Validation module](https://docs.devexpress.com/eXpressAppFramework/113684/validation-module). Available attributes include: `EmailAddressAttribute`, `PhoneAttribute`, `UrlAttribute`, `ZipCodeAttribute`. The following code snippet illustrates how the `ZipCodeAttribute` is implemented. Other attributes are implemented in a similar fashion.
 
   [Attributes/FontSizeDeltaAttribute.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Attributes/FontSizeDeltaAttribute.cs):
 
@@ -334,11 +334,11 @@ This folder contains controllers with no dependencies:
 * <a name="splitter"></a>The `SplitterPositionController` - extends the XAF model with a `RelativePosition` property used to configure the splitter position.
 
 ##### `Features` Folder
-This folder contains implementations for features specific to the solution.
+This folder implements features specific to the solution.
 
 - ##### `CloneView` Subfolder
 
-  This subfolder contains the [CloneViewAttribute](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Features/CloneView/CloneViewAttribute.cs) declaration, which is used to generate views in addition to the default ones. For example:
+  This subfolder contains the [CloneViewAttribute](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/Features/CloneView/CloneViewAttribute.cs) declaration, used to generate views (in addition to default views). For example:
 
   [BusinessObjects/Employee.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Module/BusinessObjects/Employee.cs#L22):
 
@@ -355,10 +355,10 @@ This folder contains implementations for features specific to the solution.
       // ...
   }
 - ##### `Customers` Subfolder
-  This subfolder contains controllers related to customers, such as:
+  This subfolder includes Customer-related controllers, such as:
 
   - ###### `MailMergeController`
-    XAF offers built-in support for [mail merging](https://docs.devexpress.com/eXpressAppFramework/400006/document-management/office-module/mail-merge). This controller modifies the default `ShowInDocumentAction` icons.
+    XAF ships with built-in [mail merge](https://docs.devexpress.com/eXpressAppFramework/400006/document-management/office-module/mail-merge) support. This controller modifies the default `ShowInDocumentAction` icons.
 
       ![Modified ShowInDocumentAction Icon](Images/ShowInDocumentIcon.png)
 
@@ -368,10 +368,10 @@ This folder contains implementations for features specific to the solution.
       ![Customer Report Action Icon](Images/CustomerReportAction.png)
 
 - ##### `Employees` Subfolder
-  This subfolder contains controllers related to Employees, such as:
+  This subfolder includes Employee-related controllers such as:
 
   - ###### `RoutePointController`
-    This controller sets the travel distance calculated by the MAP service.
+    This controller sets travel distance (calculated using the MAP service).
 
     WindowsForms:
     ![](Images/WinTravelDistance.png)
@@ -381,21 +381,21 @@ This folder contains implementations for features specific to the solution.
 
 - ##### `Maps` Subfolder
 
-  This subfolder houses logic related to mapping, including:
+  This subfolder includes mapping-related logic, including:
 
   <a name="mapsviewcontroller_"></a>
   - ###### `MapsViewController`
 
-    This controller declares actions related to map features (`MapItAction`, `TravelModeAction`, `ExportMapAction`, `PrintPreviewMapAction`, `PrintAction`, `StageAction`, `SalesPeriodAction`) and manages their state based on the `ISalesMapMarker` and `IRoutePointMapMarker` interfaces.
+    This controller declares map-related actions (`MapItAction`, `TravelModeAction`, `ExportMapAction`, `PrintPreviewMapAction`, `PrintAction`, `StageAction`, `SalesPeriodAction`) and manages associated state based on `ISalesMapMarker` and `IRoutePointMapMarker` interfaces.
 
 - ##### `MasterDetail` Subfolder
-  This subfolder houses a platform-agnostic master-detail feature implementation based on XAF's [DashboardViews](https://docs.devexpress.com/eXpressAppFramework/DevExpress.ExpressApp.DashboardView).
+  This subfolder adds platform-agnostic master-detail capabilities based on XAF's [DashboardViews](https://docs.devexpress.com/eXpressAppFramework/DevExpress.ExpressApp.DashboardView).
 
   - ###### `MasterDetailController, IUserControl`
-    The `IUserControl` is implemented in a manner similar to the technique described in the following topic: [How to: Include a Custom UI Control That Is Not Integrated by Default (WinForms, ASP.NET WebForms, and ASP.NET Core Blazor)](https://docs.devexpress.com/eXpressAppFramework/113610/ui-construction/using-a-custom-control-that-is-not-integrated-by-default/using-a-custom-control-that-is-not-integrated-by-default). The distinction lies in the addition of the `UserControl` (for WinForms) and the Component (for Blazor) to a `DetailView`.
+    The `IUserControl` is implemented in a manner similar to the technique described in the following topic: [How to: Include a Custom UI Control That Is Not Integrated by Default (WinForms, ASP.NET WebForms, and ASP.NET Core Blazor)](https://docs.devexpress.com/eXpressAppFramework/113610/ui-construction/using-a-custom-control-that-is-not-integrated-by-default/using-a-custom-control-that-is-not-integrated-by-default). The distinction lies in the addition of `UserControl` (for WinForms) and the Component (for Blazor) to a `DetailView`.
 
 - ##### `Orders` Subfolder
-  This subfolder focuses on functionality related to sales.
+  This subfolder includes functionality specific to the Sales moduel.
 
   - ###### `FollowUpController`
     Declares an action used to display the follow-up mail merge template for the selected order.
@@ -406,21 +406,21 @@ This folder contains implementations for features specific to the solution.
     Uses a master-detail mail merge template pair to generate an invoice, converts it to a PDF, and displays it using the `PdfViewEditor`.
   
   - ###### `Pay/Refund Controllers`
-    These controllers declare actions to mark the selected order as either Paid or Refunded.
+    These controllers declare actions used to mark the selected order as either Paid or Refunded.
   
   - ###### `ReportController`
-    Provides access to reports related to Order Revenue.
+    Provides access to Order Revenue reports.
 
     ![Revenue Analysis](Images/RevenueAnalysis.png)
 
   - ###### `ShipmentDetailController`
-    Adds a watermark to the Shipment Report based on the order status.
+    Adds a watermark to the Shipment Report based on order status.
 
     ![Watermarked Report](Images/WatermarkReport.png)
     
 
 - ##### `Products` Subfolder
-  This subfolder focuses on functionality related to Products.
+  This subfolder includes functionality specific to the Products module.
 
   - ###### `ReportsController`
     Declares an action used to display reports for Sales, Shipments, Comparisons, and Top Sales Person.
@@ -429,7 +429,7 @@ This folder contains implementations for features specific to the solution.
   
 
 - ##### `Quotes` Subfolder
-  This subfolder focuses on functionality related to Products.
+  This subfolder includes functionality specific to the Quotes module.
 
   - ###### `QuoteMapItemController`
     Calculates non-persistent `QuoteMapItem` objects used by the Opportunities view
@@ -437,27 +437,27 @@ This folder contains implementations for features specific to the solution.
     ![Opportunities](Images/Opportunities.png)
 
 - ##### `ViewFilter` Subfolder
-  This subfolder contains a Filter manager implementation, which can be used by the end-user to create and save view filters.
+  This subfolder includes our implementation of a Filter manager, used by the end-user to create and save view filters.
   
   ![ViewFilterAction](Images/ViewFilterAction.png)
   ![ViewFilterView](Images/ViewFilterView.png)
 
 #### OutlookInspired.Win project
-This is the WinForms frontend project. It utilizes the previously mentioned `OutlookInspired.Module` and adheres to the same folder structure.
+This is a WinForms frontend project. It utilizes the previously mentioned `OutlookInspired.Module` and adheres to the same folder structure.
 
 ##### `Controllers` Folder
-This folder contais the following controllers with no dependencies:   
+This folder contains the following controllers with no dependencies:
 
-- `DisableSkinsController` - This controller disables the XAF default theme-switching action. We strive for consistency in this demo across multiple platforms. Testing our views in each supported skin would require significant resources.
+- `DisableSkinsController` - This controller disables the XAF default theme-switching action.
 
 - **`SplitterPositionController`** - This is the WinForms implementation of the [SplitterPositionController](#splitter). We discussed its platform agnostic counterpart in the `OutlookInspired.Module` section.
 
 ##### `Editors` Folder
 This folder contains custom controls and XAF [property editors](https://docs.devexpress.com/eXpressAppFramework/113097/ui-construction/view-items-and-property-editors/property-editors).
 
-- `ColumnViewUserControl` - This is a base control that implements the [IUserControl](#masterdetailcontroller-iusercontrol) discussed previously.
+- `ColumnViewUserControl` - This is a base control that implements [IUserControl](#masterdetailcontroller-iusercontrol) discussed previously.
 
-- `EnumPropertyEditor` - This is a subclass of the built-in `EnumPropertyEditor`, with the difference that it displays only the image.
+- `EnumPropertyEditor` - This is a subclass of the built-in `EnumPropertyEditor` (it only displays an image).
    
    ![](Images/EnumPropertyEditorWin.png)
 
@@ -469,19 +469,19 @@ This folder contains custom controls and XAF [property editors](https://docs.dev
 
   ![](Images/LabelWinEditor.png)
 
-- `PdfViewerEditor` - This is a PDF viewer using based on the [DevExpress PDF Viewer](https://docs.devexpress.com/WindowsForms/15216/controls-and-libraries/pdf-viewer) component.
+- `PdfViewerEditor` - This is a PDF viewer based on the [DevExpress PDF Viewer](https://docs.devexpress.com/WindowsForms/15216/controls-and-libraries/pdf-viewer) component.
 
   ![](Images/PdfViewerWin.png)
 
 - `PrintLayoutRichTextEditor` - This editor extends the built-in `RichTextPropertyEditor`, but uses the `PrintLayout` mode.
 
-- `ProgressPropertyEditor` - This editor is used to display progress in various contexts.
+- `ProgressPropertyEditor` - This editor is used to display progress across various contexts.
 
   ![](Images/ProgressEditorWin.png)
 
 ##### `Services` Folder
 
-Similarly to the platform-agnostic modules [Services Folder](#services-folder), the WinForms project keeps all classes as thin as possible and implements business logic in extension methods.
+Much like the platform-agnostic module's [Services Folder](#services-folder), our WinForms project keeps all classes as small as possible and implements business logic in extension methods.
 
 ##### `Features` Folder
 
@@ -489,11 +489,11 @@ This folder contains custom functionality specific to the solution.
 
 - ##### `Maps` Subfolder
 
-  This subfolder houses logic related to mapping.
+  This subfolder includes logic related to mapping.
 
   - **MapsViewController** - This controller overrides the platform-agnostic `MapsViewController` to further configure the state of map actions.
   
-  - **WinMapsViewController** - This is an abstract controller that provides functionality used by its derived classes - `SalesMapsViewController` and `RouteMapsViewController`. The controller configures Map views for all objects that implement the `ISalesMapsMarker` (Customer, Product) and `IRouteMapsMarker` (Order, Employee) interfaces.
+  - **WinMapsViewController** - This is an abstract controller that provides functionality used by its derived classes - `SalesMapsViewController` and `RouteMapsViewController`. The controller configures Map views for all objects that implement `ISalesMapsMarker` (Customer, Product) and `IRouteMapsMarker` (Order, Employee) interfaces.
   
   ![Win Opportunity Maps](Images/WinOppurtunityMaps.png)
   
@@ -501,7 +501,7 @@ This folder contains custom functionality specific to the solution.
 
 - ##### `Customers` Subfolder
 
-  This subfolder contains functionality related to customers.
+  This subfolder contains customer module-related functionality.
 
   - **CustomerGridView**, **CustomerLayoutView**, and **CustomerStoreView**: These classes derive from the previously discussed `ColumnViewUserControl`. They host custom `GridControl` variants, such as master-detail layouts.
   
@@ -509,7 +509,7 @@ This folder contains custom functionality specific to the solution.
 
 - ##### `Employees` Subfolder
 
-  This subfolder contains functionality related to employees.
+  This subfolder contains employee module-related functionality.
 
   - **EmployeesLayoutView** - This is a descendant of `ColumnViewUserControl` that hosts a GridControl LayoutView.
 
@@ -517,9 +517,9 @@ This folder contains custom functionality specific to the solution.
 
 - ##### `GridListEditor` Subfolder
 
-  This subfolder contains functionality related to default XAF GridListEditor.
+  This subfolder contains functionality related to the default XAF GridListEditor.
 
-  - `FontSizeController` - Uses the `FontSizeDelta` discussed in the platfrom-agnostic module section to increase the font size in a row cell of an AdvancedBanded Grid
+  - `FontSizeController` - Uses the `FontSizeDelta` discussed in the platfrom-agnostic module section to increase font size in row cells of an AdvancedBanded Grid.
 
   - `NewItemRowHandlingModeController` - Modifies how new object are handled when a dashboard master detail view (discussed in the platform-agnostic module section) objects are created.
 
@@ -533,7 +533,7 @@ This folder contains custom functionality specific to the solution.
 
 - ##### `Quotes` Subfolder
 
-  This subfolder contains functionality related to opportunities.
+  This subfolder contains opportunity module-related functionality.
 
   - `WinMapsController`, `PaletteEntriesController` - Configures the opportunities maps view.
 
@@ -546,54 +546,53 @@ This folder contains custom functionality specific to the solution.
 
     
 ## OutlookInspired.Blazor.Server Project
-This is the Blazor frontend project. It utilizes the previously mentioned `OutlookInspired.Module` and adheres to the same folder structure.
+This is the Blazor frontend project. It utilizes the previously mentioned `OutlookInspired.Module` and maintains the same folder structure.
 
 ### `Components` Folder
-This folder contains Blazor components essential for meeting the project's requirements.
+This folder contains Blazor components essential for project requirements.
 
-- **ComponentBase, ComponentModelBase** - `ComponentBase` is the foundational component for client-side components like DxMap, DxFunnel, DXPivot, and PdfViewer. It manages loading of resources such as JavaScript files. `ComponentModelBase` acts as the base model for all components, offering functionalities like a `ClientReady` event and a hook for browser console messages, among other features.
+- **ComponentBase, ComponentModelBase** - `ComponentBase`  is the foundation for client-side components like DxMap, DxFunnel, DXPivot, and PdfViewer. It manages loading of resources such as JavaScript files. `ComponentModelBase` acts as the base model for all components, offering functionality such as `ClientReady` event and a hook for browser console messages, among other features.
 
   ![](Images/ComponentBaseModelBase.png)
 
-- **HyperLink, Label** - These components function similarly to their WindowsForms counterparts and are used to render hyperlinks and labels.
+- **HyperLink, Label** - TThese components mirror their WinForms counterparts and are used to render hyperlinks and labels.
 
   ![](Images/HyperLinkLabel.png)
 
-- **PdfViewer** - This is a `ComponentBase` descendant that serves as a viewer for PDF files.
+- **PdfViewer** - This is a `ComponentBase` descendant used to view PDF files.
 
   ![](Images/PdfViewerBlazor.png)
 
-- **XafImg, BOImage** - Both components are used to display images in a variety of contexts.
+- **XafImg, BOImage** - Both components are used to display images across a variety of contexts.
 
   ![](Images/BOImage.png)
   ![](Images/XafImg.png)
 
-- **XafChart** - This component is utilized for charting Customer stores.
+- **XafChart** - This component is utilized for charting Customer store data.
 
   ![](Images/BlazorChart.png)
 
 - ##### `CardView` Subfolder
   
-  This folder contains the the `SideBySideCardView` and the `StackedCardView`. They are used to display Card like listviews like bellow.
-
+  This folder contains the `SideBySideCardView` and the `StackedCardView`. They are used to display Card like list views as follows:
   ![](Images/CardViews.png)
 
 - ##### `DevExtreme` Subfolder
 
-  In this folder we have .NET reusabe compoenents that utilizing the [Map](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Map/Markers/Light/), [VectorMap](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/VectorMap/Overview/Light/), [Funnel](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Charts/FunnelChart/Light/) and [Chart](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Charts/Overview/Light/) DevExtreme Widgets.
+  This folder includes reusable .NET components, including [Map](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Map/Markers/Light/), [VectorMap](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/VectorMap/Overview/Light/), [Funnel](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Charts/FunnelChart/Light/) and [Chart](https://js.devexpress.com/jQuery/Demos/WidgetsGallery/Demo/Charts/Overview/Light/) DevExtreme Widgets.
 
 
 ### `Controllers` Folder
-This folder contais the following controllers with no dependencies:   
+This folder contains the following controllers with no dependencies:
 
-- `CellDisplayTemplateController` - Is an abstract controller that allows the application to render the GridListEditor row cell fragments.
-- `DxGridListEditorController` - Overiddes GridListEditor behaviours such as removing command columns.
+- `CellDisplayTemplateController` - Is an abstract controller that allows the application to render GridListEditor row cell fragments.
+- `DxGridListEditorController` - Overiddes GridListEditor behaviors (such as removing command columns).
 - `PopupWindowSizeController` - Configures the size of popup windows.
 
 ### `Editors` Folder
-This folder houses XAF custom editors. Examples include:
+This folder contains XAF custom editors. Examples include:
 
-- `ChartListEditor` - An abstract list editor designed to aid in creating simple object-specific variants.
+- `ChartListEditor` - An abstract list editor designed to create simple object-specific variants.
   
   [Editors/ChartListEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Editors/ChartListEditor.cs):
 
@@ -604,7 +603,7 @@ This folder houses XAF custom editors. Examples include:
       }
   }
 
-- `ComponentPropertyEditor` - An abstract property editor that can serve as a base for editors such as `ProgressPropertyEditor` or `PdfViewEditor`. The latter makes use of the PdfViewer component from the _Components_ folder.
+- `ComponentPropertyEditor` - An abstract property editor that serves as a basis for editors such as `ProgressPropertyEditor` or `PdfViewEditor`. The latter uses the PdfViewer component from the _Components_ folder.
 
   [Editors/ComponentPropertyEditor.cs](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Editors/ComponentPropertyEditor.cs):
 
@@ -616,16 +615,16 @@ This folder houses XAF custom editors. Examples include:
   }
 
   ```
-- `EnumPropertyEditor` - Inherits from XAF's native EnumPropertyEditor, but solely displays the image, akin to its WinForms counterpart.
+- `EnumPropertyEditor` - Inherits from XAF's native _EnumPropertyEditor_, but only displays an image (like its WinForms counterpart).
 
-- `DisplayTestPropertyEditors` - Displays raw text, similar to the WinForms LabelPropertyEditor.
+- `DisplayTestPropertyEditors` - Displays raw text (like the WinForms _LabelPropertyEditor_).
 
 ### `Features` Folder
 
-This folder contains functionality specific to the solution.
+This folder contains solution-specific functionality.
 
 - ##### `Customers` subfolder
-  Uses components from the `Components` (bound to data) to render data related to customers. For example it uses the `StackedCardView` with a `StackedInfoCard` as shown below:
+  Uses components from `Components` (bound to data) to render customer-related data. For example, it uses the `StackedCardView` with a `StackedInfoCard` as shown below:
 
   [Features/Customers/Stores/StoresCardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Customers/Stores/StoresCardView.razor):
 
@@ -646,7 +645,7 @@ This folder contains functionality specific to the solution.
   
 - ##### `Employees` subfolder
   
-  Uses data-bound components from the `Components` folder to render data related to employees.
+  Uses data-bound components from the `Components` folder to render employee-related data.
 
   [Features/Employees/CardView/CardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Employees/CardView/CardView.razor):
 
@@ -662,29 +661,29 @@ This folder contains functionality specific to the solution.
 </StackedCardView>
   ```
 
-  The image below illustrates the result.
+  Results are as follows:
 
   ![](Images/EmployeeCard.png)
 
-  The `Evaluations` and `Tasks` subfolders include components responsible for rendering the cell fragment in the image below. Both components are linked to the cell through the `Controllers\CellDisplayTemplateController`.
+  The `Evaluations` and `Tasks` include components responsible for rendering the cell fragment in the following image. Both components are linked to the cell through `Controllers\CellDisplayTemplateController`.
 
   ![](Images/TasksView.png)
 
 - ##### `Evaluations` subfolder
-  The `SchedulerGroupTypeController` is required to set up the scheduler, as shown below:
+  The `SchedulerGroupTypeController` is required to set up the scheduler, as follows:
 
   ![](Images/Scheduler.png)
 
 - ##### `Maps` subfolder
-  Mirroring its WinForms counterpart, this subfolder houses both the `RouteMapsViewController` and the `SalesMapsViewController`. These controllers are required to configure the maps (`ModalDxMap` and `ModalDxVectorMap`) along with their associated actions such as `TravelMode`, `SalesPeriod`, `Print`, and more. The components within this directory are fragments that employ components found in `Components/DevExtreme`. Additionally, they adjust their height as they are displayed in a modal popup window.
+  Mirroring its WinForms counterpart, this subfolder contains both the `RouteMapsViewController` and the `SalesMapsViewController`. These controllers are needed to configure maps (`ModalDxMap` and `ModalDxVectorMap`) and associated actions (such as `TravelMode`, `SalesPeriod`, `Print`, etc). Components within this directory are fragments that use components in `Components/DevExtreme`. Additionally, they adjust height as they are displayed in a modal popup window.
  
 - ##### `Orders` subfolder
-  The `DetailRow` component renders the detail fragment for the OrderListView.
+  The `DetailRow` component renders the detail fragment for the `OrderListView`.
 
   ![](Images/OrderDetailView.png)
 
 - ##### `Product` subfolder
-  Similar to the Employees subfolder, the `Component/CardViews/StackedCardView` declaration is as follows:
+  Much like the _Employees_ subfolder, the `Component/CardViews/StackedCardView` declaration is as follow:
 
   [Features/Products/CardView.razor](https://github.com/DevExpress-Examples/xaf-create-multitenant-application/blob/23.2.3%2B/CS/OutlookInspired.Blazor.Server/Features/Products/CardView.razor):
 
@@ -702,7 +701,7 @@ This folder contains functionality specific to the solution.
   </StackedCardView>
   ```
 
-  The image below demonstrates the result:
+  Results are as follows:
 
   ![](Images/ProductCardView.png)
 
